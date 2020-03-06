@@ -66,6 +66,9 @@ class SaveOrder extends \Magento\Checkout\Controller\Onepage implements HttpPost
             $this->getOnepage()->saveOrder();
 
             $redirectUrl = $this->getOnepage()->getCheckout()->getRedirectUrl();
+
+            var_dump($redirectUrl);die();
+
             $result->setData('success', true);
             $result->setData('error', false);
         } catch (PaymentException $e) {

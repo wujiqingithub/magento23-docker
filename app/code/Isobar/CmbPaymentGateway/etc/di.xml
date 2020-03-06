@@ -1,0 +1,143 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Copyright © 2016 Magento. All rights reserved.
+ * See COPYING.txt for license details.
+ */
+-->
+
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <!-- Payment Method Facade configuration -->
+    <virtualType name="CmbPaymentGatewayFacade" type="Magento\Payment\Model\Method\Adapter">
+        <arguments>
+            <argument name="code" xsi:type="const">\Isobar\CmbPaymentGateway\Model\Ui\ConfigProvider::CODE</argument>
+            <argument name="formBlockType" xsi:type="string">Magento\Payment\Block\Form</argument>
+            <argument name="infoBlockType" xsi:type="string">Isobar\CmbPaymentGateway\Block\Info</argument>
+            <argument name="valueHandlerPool" xsi:type="object">CmbPaymentGatewayValueHandlerPool</argument>
+            <argument name="commandPool" xsi:type="object">CmbPaymentGatewayCommandPool</argument>
+        </arguments>
+    </virtualType>
+
+    <!-- Configuration reader -->
+    <virtualType name="CmbPaymentGatewayConfig" type="Magento\Payment\Gateway\Config\Config">
+        <arguments>
+            <argument name="methodCode" xsi:type="const">\Isobar\CmbPaymentGateway\Model\Ui\ConfigProvider::CODE</argument>
+        </arguments>
+    </virtualType>
+
+    <!-- Logger, initialized with CmbPaymentGatewayConfig -->
+    <virtualType name="CmbPaymentGatewayLogger" type="Magento\Payment\Model\Method\Logger">
+        <arguments>
+            <argument name="config" xsi:type="object">CmbPaymentGatewayConfig</argument>
+        </arguments>
+    </virtualType>
+
+    <type name="Isobar\CmbPaymentGateway\Gateway\Http\Client\ClientMock">
+        <arguments>
+            <argument name="logger" xsi:type="object">CmbPaymentGatewayLogger</argument>
+        </arguments>
+    </type>
+
+    <!-- Commands infrastructure -->
+    <virtualType name="CmbPaymentGatewayCommandPool" type="Magento\Payment\Gateway\Command\CommandPool">
+        <arguments>
+            <argument name="commands" xsi:type="array">
+                <item name="authorize" xsi:type="string">CmbPaymentGatewayAuthorizeCommand</item>
+                <item name="capture" xsi:type="string">CmbPaymentGatewayCaptureCommand</item>
+                <item name="void" xsi:type="string">CmbPaymentGatewayVoidCommand</item>
+            </argument>
+        </arguments>
+    </virtualType>
+
+    <!-- Authorize command -->
+    <virtualType name="CmbPaymentGatewayAuthorizeCommand" type="Magento\Payment\Gateway\Command\GatewayCommand">
+        <arguments>
+            <argument name="requestBuilder" xsi:type="object">CmbPaymentGatewayAuthorizationRequest</argument>
+            <argument name="handler" xsi:type="object">CmbPaymentGatewayResponseHandlerComposite</argument>
+            <argument name="transferFactory" xsi:type="object">Isobar\CmbPaymentGateway\Gateway\Http\TransferFactory</argument>
+            <argument name="client" xsi:type="object">Isobar\CmbPaymentGateway\Gateway\Http\Client\ClientMock</argument>
+        </arguments>
+    </virtualType>
+
+    <!-- Authorization Request -->
+    <virtualType name="CmbPaymentGatewayAuthorizationRequest" type="Magento\Payment\Gateway\Request\BuilderComposite">
+        <arguments>
+            <argument name="builders" xsi:type="array">
+                <item name="transaction" xsi:type="string">Isobar\CmbPaymentGateway\Gateway\Request\AuthorizationRequest</item>
+                <item name="mockData" xsi:type="string">Isobar\CmbPaymentGateway\Gateway\Request\MockDataRequest</item>
+            </argument>
+        </arguments>
+    </virtualType>
+    <type name="Isobar\CmbPaymentGateway\Gateway\Request\AuthorizationRequest">
+        <arguments>
+            <argument name="config" xsi:type="object">CmbPaymentGatewayConfig</argument>
+        </arguments>
+    </type>
+
+    <!-- Capture command -->
+    <virtualType name="CmbPaymentGatewayCaptureCommand" type="Magento\Payment\Gateway\Command\GatewayCommand">
+        <arguments>
+            <argument name="requestBuilder" xsi:type="object">Isobar\CmbPaymentGateway\Gateway\Request\CaptureRequest</argument>
+            <argument name="handler" xsi:type="object">Isobar\CmbPaymentGateway\Gateway\Response\TxnIdHandler</argument>
+            <argument name="transferFactory" xsi:type="object">Isobar\CmbPaymentGateway\Gateway\Http\TransferFactory</argument>
+            <argument name="validator" xsi:type="object">Isobar\CmbPaymentGateway\Gateway\Validator\ResponseCodeValidator</argument>
+            <argument name="client" xsi:type="object">Isobar\CmbPaymentGateway\Gateway\Http\Client\ClientMock</argument>
+        </arguments>
+    </virtualType>
+
+    <!-- Capture Request -->
+    <type name="Isobar\CmbPaymentGateway\Gateway\Request\CaptureRequest">
+        <arguments>
+            <argument name="config" xsi:type="object">CmbPaymentGatewayConfig</argument>
+        </arguments>
+    </type>
+
+    <!-- Void command -->
+    <virtualType name="CmbPaymentGatewayVoidCommand" type="Magento\Payment\Gateway\Command\GatewayCommand">
+        <arguments>
+            <argument name="requestBuilder" xsi:type="object">Isobar\CmbPaymentGateway\Gateway\Request\VoidRequest</argument>
+            <argument name="handler" xsi:type="object">Isobar\CmbPaymentGateway\Gateway\Response\TxnIdHandler</argument>
+            <argument name="transferFactory" xsi:type="object">Isobar\CmbPaymentGateway\Gateway\Http\TransferFactory</argument>
+            <argument name="validator" xsi:type="object">Isobar\CmbPaymentGateway\Gateway\Validator\ResponseCodeValidator</argument>
+            <argument name="client" xsi:type="object">Isobar\CmbPaymentGateway\Gateway\Http\Client\ClientMock</argument>
+        </arguments>
+    </virtualType>
+
+    <!-- Void Request -->
+    <type name="Isobar\CmbPaymentGateway\Gateway\Request\VoidRequest">
+        <arguments>
+            <argument name="config" xsi:type="object">CmbPaymentGatewayConfig</argument>
+        </arguments>
+    </type>
+
+    <!-- Response handlers -->
+    <virtualType name="CmbPaymentGatewayResponseHandlerComposite" type="Magento\Payment\Gateway\Response\HandlerChain">
+        <arguments>
+            <argument name="handlers" xsi:type="array">
+                <item name="txnid" xsi:type="string">Isobar\CmbPaymentGateway\Gateway\Response\TxnIdHandler</item>
+                <item name="fraud" xsi:type="string">Isobar\CmbPaymentGateway\Gateway\Response\FraudHandler</item>
+            </argument>
+        </arguments>
+    </virtualType>
+
+    <!-- Value handlers infrastructure -->
+    <virtualType name="CmbPaymentGatewayValueHandlerPool" type="Magento\Payment\Gateway\Config\ValueHandlerPool">
+        <arguments>
+            <argument name="handlers" xsi:type="array">
+                <item name="default" xsi:type="string">CmbPaymentGatewayConfigValueHandler</item>
+            </argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="CmbPaymentGatewayConfigValueHandler" type="Magento\Payment\Gateway\Config\ConfigValueHandler">
+        <arguments>
+            <argument name="configInterface" xsi:type="object">CmbPaymentGatewayConfig</argument>
+        </arguments>
+    </virtualType>
+
+    <type name="Isobar\CmbPaymentGateway\Block\Info">
+        <arguments>
+            <argument name="config" xsi:type="object">CmbPaymentGatewayConfig</argument>
+        </arguments>
+    </type>
+
+</config>

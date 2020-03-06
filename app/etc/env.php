@@ -7,7 +7,7 @@ return [
         'consumers_wait_for_messages' => 1
     ],
     'crypt' => [
-        'key' => '60fed8bb5a103ea1ac377ebe2d1d4b0d'
+        'key' => '0481721e045e6267b78d520ab1cec6c9'
     ],
     'db' => [
         'table_prefix' => '',
@@ -33,7 +33,7 @@ return [
         ]
     ],
     'x-frame-options' => 'SAMEORIGIN',
-    'MAGE_MODE' => 'default',
+    'MAGE_MODE' => 'developer',
     'session' => [
         'save' => 'files'
     ],
@@ -75,6 +75,6 @@ return [
         'local.magento2.docker.com'
     ],
     'install' => [
-        'date' => 'Sun, 16 Feb 2020 13:04:04 +0000'
+        'date' => 'Tue, 03 Mar 2020 02:18:30 +0000'
     ]
 ];
